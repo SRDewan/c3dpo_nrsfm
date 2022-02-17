@@ -178,7 +178,7 @@ def set_config(cfg, cfg_set):
 def set_config_from_file(cfg, cfg_filename):
     # set config from yaml file
     with open(cfg_filename, 'r') as f:
-        yaml_cfg = yaml.load(f, Loader=yaml.FullLoader)
+        yaml_cfg = yaml.load(f, Loader=yaml.Loader)
     set_config_from_config(cfg, yaml_cfg)
 
 

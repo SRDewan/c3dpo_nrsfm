@@ -31,6 +31,10 @@ def eval_zoo(dataset_name, include_debug_vars=False):
         eval_script = eval_dummy
         cache_vars = ['shape_image_coord']
         eval_vars = ['EVAL_dummy']
+    elif dataset_name in ('cars'):
+        eval_script = eval_dummy
+        cache_vars = ['shape_image_coord']
+        eval_vars = ['EVAL_dummy']
     else:
         assert False, ("no such dataset eval %s" % dataset_name)
 

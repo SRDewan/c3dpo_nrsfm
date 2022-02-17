@@ -18,6 +18,7 @@ from tabulate import tabulate
 def eval_model(dataset_name):
 
     model_dir = download_model(dataset_name, force_download=False)
+    model_dir = './data/exps/c3dpo/pretrained_cars'
 
     model, _ = init_model_from_dir(model_dir)
     model.eval()
@@ -41,11 +42,13 @@ def eval_model(dataset_name):
 if __name__ == '__main__':
 
     results = {}
+    datasets = ('h36m', 'h36m_hourglass', 'pascal3d_hrnet',
+                    'pascal3d', 'up3d_79kp')
+    datasets = ('cars', )
 
-    for dataset in ('h36m', 'h36m_hourglass', 'pascal3d_hrnet',
-                    'pascal3d', 'up3d_79kp'):
+    for dataset in datasets:
         results[dataset] = eval_model(dataset)
-
+    
     print('\n\nRESULTS:')
     tab_rows = []
     for dataset, result in results.items():
