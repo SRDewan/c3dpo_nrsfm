@@ -10,6 +10,7 @@ import torch
 import json
 import random
 import numpy as np
+import cv2
 from PIL import Image
 
 from dataset.dataset_configs import STICKS
@@ -28,7 +29,7 @@ def stitchSave(images, savePath):
 
     x_offset = 0
     for im in images:
-        new_im.paste(im, (x_offset,0))
+        new_im.paste(im.resize((im.size[0], max_height)), (x_offset,0))
         x_offset += im.size[0]
 
     new_im.save(savePath)
@@ -38,6 +39,7 @@ def run_demo(model, model_dir, data, idx):
 
     preds = model(**net_input)
     canonical = preds['phi']['shape_canonical'][0]
+    camera = preds['phi']['shape_camera_coord'][0]
     kp_loc_pred = preds['kp_reprojected_image'][0]
  
     # input keypoints
@@ -86,12 +88,14 @@ def run_demo(model, model_dir, data, idx):
     stitchSave([im_proj, im_proj_pred], savePath)
 
     video_path = os.path.join(saveDir, 'demo_shape.mp4')
-    rotating_3d_video(kp_pred_3d.detach().cpu(),
+    rotating_3d_video(camera.detach().cpu(),
                       video_path=video_path,
+                      fps=1,
+                      vlen=1,
                       sticks=sticks,
-                      title='rotating 3d',
+                      title='camera',
                       cmap='rainbow',
-                      visdom_env='demo_h36m',
+                      visdom_env=None,
                       visdom_win='3d_shape',
                       get_frames=20, )
 
@@ -103,9 +107,22 @@ def run_demo(model, model_dir, data, idx):
                       sticks=sticks,
                       title='canonical',
                       cmap='rainbow',
-                      visdom_env='demo_h36m',
+                      visdom_env=None,
                       visdom_win='3d_shape',
                       get_frames=20, )
+
+    # makeVid(saveDir)
+    camPath = os.path.join(saveDir, 'demo_shape3D_0000.png')
+    canonPath = os.path.join(saveDir, 'demo_canonical_shape3D_0000.png')
+    inpImg = Image.open(imgPath)
+    cam = Image.open(camPath)
+    canon = Image.open(canonPath)
+    savePath3D = os.path.join(saveDir, 'camera_vs_canonical.png')
+    stitchSave([inpImg, cam, canon], savePath3D)
+
+    os.system('cp ' + saveDir + '/projection.png finalRes/projection' + str(idx) + '.png')
+    os.system('cp ' + saveDir + '/camera_vs_canonical.png finalRes/camera_vs_canonical' + str(idx) + '.png')
+    os.system('rm -rf ' + saveDir)
 
 def getTestSample(data, idx):
     kp_loc = data['data'][idx]['kp_loc']
@@ -116,8 +133,24 @@ def getTestSample(data, idx):
 
     return {'kp_loc': kp_loc[None], 'kp_vis': kp_vis[None], 'imgPath': imgPath, 'img': img}
 
+def makeVid(saveDir):
+    imgArr = []
+
+    for dirpath, dirs, files in os.walk(saveDir):
+        for file in sorted(files):
+            if "demo_shape3D" in file:
+               img = cv2.imread(os.path.join(saveDir, file))
+               imgArr.append(img)
+               size = (img.shape[1], img.shape[0])
+
+    out = cv2.VideoWriter(os.path.join(saveDir, 'camera.avi'), cv2.VideoWriter_fourcc(*'DIVX'), 4, size)
+    for i in range(len(imgArr)):
+        out.write(imgArr[i])
+
+    out.release()
+
 def main():
-    f = open('./data/datasets/c3dpo/cars_test.json')
+    f = open('./data/datasets/c3dpo/cars_test2.json')
     data = json.load(f)
     f.close()
 
@@ -125,7 +158,7 @@ def main():
     model, _ = init_model_from_dir(model_dir)
     model.eval()
 
-    for i in range(len(data['data'])):
+    for i in range(0, 100):
         run_demo(model, model_dir, data, i)
 
 if __name__ == '__main__':

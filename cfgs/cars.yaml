@@ -44,7 +44,7 @@ dictitems:
       - l_canonicalization
       loss_weights: !!python/object/new:tools.attr_dict.AttrDict
         dictitems:
-          l_canonicalization: 1.0
+          l_canonicalization: 10.0
           l_reprojection: 1.0
       n_fully_connected: 1024
       n_keypoints: 22
@@ -71,7 +71,7 @@ dictitems:
       gamma: 0.1
       lr: 0.001
       lr_policy: multistep
-      max_epochs: 90
+      max_epochs: 200
       milestones:
       - 60
       - 80
