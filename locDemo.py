@@ -17,9 +17,13 @@ from dataset.dataset_configs import STICKS
 from experiment import init_model_from_dir
 from tools.model_io import download_model
 from tools.utils import get_net_input
+from tools.vis_utils import matplot_plot_point_cloud 
 
 from tools.vis_utils import show_projections
 from visuals.rotating_shape_video import rotating_3d_video
+
+combPts = []
+combSticks = []
 
 def stitchSave(images, savePath):
     widths, heights = zip(*(i.size for i in images))
@@ -124,6 +128,18 @@ def run_demo(model, model_dir, data, idx):
     os.system('cp ' + saveDir + '/camera_vs_canonical.png finalRes/camera_vs_canonical' + str(idx) + '.png')
     os.system('rm -rf ' + saveDir)
 
+    shape = canonical.detach().cpu()
+    mean = shape.sum(1) / shape.shape[1]
+    shape = shape - mean[:, None]
+    global combPts, combSticks
+
+    if len(combPts):
+       combPts = np.concatenate((combPts, shape.numpy()), axis=1)
+       combSticks = np.concatenate((combSticks, idx * np.shape(shape)[1] + np.array(sticks)))
+    else:
+       combPts = shape.numpy()
+       combSticks = np.array(sticks)
+
 def getTestSample(data, idx):
     kp_loc = data['data'][idx]['kp_loc']
     kp_vis = data['data'][idx]['kp_vis']
@@ -160,6 +176,14 @@ def main():
 
     for i in range(0, 100):
         run_demo(model, model_dir, data, i)
+
+    global combPts, combSticks
+    fig = matplot_plot_point_cloud(combPts,
+                                   pointsize=300, azim=-90, elev=90,
+                                   figsize=(8, 8), title='combined_canonical',
+                                   sticks=combSticks, lim=None,
+                                   cmap='rainbow', ax=None, subsample=None,
+                                   flip_y=True, savePath='finalRes/combined_canonical.png')
 
 if __name__ == '__main__':
     main()

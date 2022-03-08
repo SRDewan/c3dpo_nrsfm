@@ -303,9 +303,9 @@ def matplot_plot_point_cloud(ptcloud, pointsize=20, azim=90, elev=90,
         ax.set_title(title)
     
     plt.savefig(savePath)
-    plt.show(block=False)
-    plt.pause(3)
-    plt.close('all')
+    # plt.show(block=False)
+    # plt.pause(3)
+    # plt.close('all')
 
     return fig
 

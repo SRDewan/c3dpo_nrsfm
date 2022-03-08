@@ -60,10 +60,10 @@ def rotating_3d_video(
             print('exporting %s' % framefile)
             plt.savefig(framefile)
 
-        plt.show(block=False)
-        plt.pause(1)
-        plt.close('all')
-        #plt.close(fig)
+        # plt.show(block=False)
+        # plt.pause(1)
+        # plt.close('all')
+        # plt.close(fig)
 
     vidpath = vw.get_video(silent=True)
 
